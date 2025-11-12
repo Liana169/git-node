@@ -1,0 +1,17 @@
+{
+  "name": "git-node",
+  "version": "1.0.0",
+  "description": "Testing git",
+  "main": "app.js",
+  "repository": "https://github.com/Liana169/git-node.git",
+  "author": "Liana Pijoyan <liannapijoyan02@icloud.com>",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "nodemon": "^3.1.11"
+  }
+}
