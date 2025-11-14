@@ -1,7 +1,7 @@
 {
   "name": "git-node",
   "version": "1.0.0",
-  "description": "Testing git",
+  "description": "Testing git repositarus",
   "main": "app.js",
   "repository": "https://github.com/Liana169/git-node.git",
   "author": "Liana Pijoyan <liannapijoyan02@icloud.com>",
