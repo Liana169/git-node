@@ -1,27 +1,20 @@
-import jwt from "jsonwebtoken";
-import HttpErrors from "http-errors";
+import * as Users from '../models/users.js';
 
-const { JWT_SECRET } = process.env;
-
-export default function authorize(req, res, next) {
+export default async function authorize(req, res, next) {
     try {
-        const authHeader = req.headers.authorization;
 
-        if (!authHeader) {
-            throw HttpErrors(401, "Authorization header missing");
+        const userId = req.body.userId || req.query.userId || req.headers['x-user-id'];
+
+        if (!userId) {
+            return res.status(401).json({ status: 'error', message: 'User not authenticated' });
         }
 
-        const [type, token] = authHeader.split(" ");
-
-        if (type !== "Bearer" || !token) {
-            throw HttpErrors(401, "Invalid authorization format (must be Bearer token)");
+        const user = await Users.getUserById(userId);
+        if (!user) {
+            return res.status(401).json({ status: 'error', message: 'User not found' });
         }
 
-        const decoded = jwt.verify(token, JWT_SECRET);
-
-        req.user = {
-            id: decoded.id,
-        };
+        req.user = user;
 
         next();
     } catch (err) {

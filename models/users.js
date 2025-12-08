@@ -1,69 +1,49 @@
-import md5 from "md5";
-import path from "path";
+import fs from 'fs/promises';
+import path from 'path';
 import { v7 as uuidv7 } from 'uuid';
-import { mkdir, access, writeFile, readFile } from "fs/promises";
-import HttpErrors from "http-errors";
 
-const dataDir = path.join(process.cwd(), "data");
-const dataFile = path.join(dataDir, "users.json");
+const DATA_FILE = path.join(process.cwd(), 'data/users.json');
 
-const { USER_SECRET } = process.env;
-
-async function readUsers() {
+export async function initializeDataFile() {
     try {
-        const data = await readFile(dataFile, "utf8");
-        return JSON.parse(data || "[]");
+        await fs.access(DATA_FILE);
+    } catch {
+        await fs.writeFile(DATA_FILE, JSON.stringify([]));
+    }
+}
+
+
+export async function getAllUsers() {
+    try {
+        const data = await fs.readFile(DATA_FILE, 'utf-8');
+        return JSON.parse(data);
     } catch {
         return [];
     }
 }
 
-async function writeUsers(users) {
-    await writeFile(dataFile, JSON.stringify(users, null, 2));
-}
 
-export async function initializeDataFile() {
-    try {
-        await mkdir(dataDir, { recursive: true });
-        await access(dataFile);
-    } catch {
-        await writeFile(dataFile, "[]");
-    }
-}
-
-export async function findUserByID(id) {
-    const users = await readUsers();
-    return users.find((u) => u.id === id);
-}
-
-export async function findUserByEmail(email) {
-    const users = await readUsers();
-    return users.find((u) => u.email === email);
-}
-
-export async function createUser({ username, email, password, address }) {
-    const users = await readUsers();
-
-    if (await findUserByEmail(email)) {
-        throw HttpErrors(400, "User already exists!");
-    }
-
+export async function createUser({ username, email, password }) {
+    const data = await getAllUsers();
     const newUser = {
         id: uuidv7(),
         username,
         email,
-        password: md5(md5(password) + USER_SECRET),
-        address,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        password
     };
-
-    users.push(newUser);
-    await writeUsers(users);
-
+    data.push(newUser);
+    await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
     return newUser;
 }
 
-export function checkPassword(hashedPassword, rawPassword) {
-    return hashedPassword === md5(md5(rawPassword) + USER_SECRET);
+
+export async function getUserByEmail(email) {
+    const data = await getAllUsers();
+    return data.find(u => u.email === email) || null;
+}
+
+
+export async function getUserById(id) {
+    const data = await getAllUsers();
+    return data.find(u => u.id === id) || null;
 }
